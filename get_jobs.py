@@ -57,21 +57,18 @@ def job_results(job_links):
         res = requests.get(link)
         res.raise_for_status()
         soup = bs4.BeautifulSoup(res.text, features = "lxml")
-        
         # Extract 'feature_classes'
         for feature in feature_classes.values():
             feature_tag = soup.select('span[itemprop = "{}"]'.format(feature))[0]
             # Strip spaces, tabs, and newlines
             feature_value = feature_tag.text.strip('\t\n\r ')
             job_data.append(feature_value)
-        
         # Extract 'job_desc' from the job description block
         job_desc_tags = soup.select('.jobdescription > p > span > span > strong')
         job_desc_dict_all = {tag.text.strip(': '): tag.next_sibling \
             for tag in job_desc_tags}
         job_desc_list_wanted = [job_desc_dict_all.get(key) for key in job_desc]
         job_data.extend(job_desc_list_wanted)
-
         # Extract 'req' from job description block
         req_tags = soup.select('.jobdescription > p')
         job_req = ''
@@ -105,7 +102,6 @@ def job_results(job_links):
                     job_req = re.sub(r'\n+', '\n', job_req + \
                         tag.text).strip('\t\n\r ') + '\n'
         job_data.append(re.sub(r'\xa0', ' ', job_req).strip('\t\n\r '))
-
         # Append finished job to list
         jobs.append(job_data)
     return jobs
