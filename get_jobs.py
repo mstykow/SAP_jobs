@@ -3,11 +3,13 @@
 
 import os, sys, requests, webbrowser, bs4, csv, re
 
+_url = 'https://jobs.sap.com/search/?q='
+
 # Function to return number of hits given a search string
 def get_hits(string):
     string = string.strip().lower()
     url_string = string.replace(' ', '+')
-    url = 'https://jobs.sap.com/search/?q={}'.format(url_string)
+    url = _url + url_string
     res = requests.get(url)
     res.raise_for_status()
     soup = bs4.BeautifulSoup(res.text, features="lxml")
@@ -17,8 +19,7 @@ def get_hits(string):
 def search_page(string, page_after):
     string = string.strip().lower()
     url_string = string.replace(' ', '+')
-    url = 'https://jobs.sap.com/search/?q={}'.format(url_string) \
-        + '&startrow={}'.format(page_after)
+    url = _url + url_string + '&startrow={}'.format(page_after)
     res = requests.get(url)
     res.raise_for_status()
     soup = bs4.BeautifulSoup(res.text, features="lxml")
@@ -116,14 +117,28 @@ def get_jobs(string):
 
 # Wrapper function to get all jobs matching a search string as a csv file
 def get_jobs_csv(string):
-    print('Writing results to file "{}.csv"...'.format(string))
+    # Check for forbidden filename characters.
+    forbidden = ['.', ':', '/', '\\']
+    if string == '' or any(char in string for char in forbidden):
+        flag = 'output'
+    else:
+        flag = string
+    print('Writing results to file "{}.csv"...'.format(flag))
     # Get the path to the current working directory
     base_path = os.path.dirname(sys.argv[0])
     os.chdir(base_path)
     csv_data = job_results(get_joblinks(string))
     # Write data to csv
-    with open('{}.csv'.format(string), 'w') as csv_file:
+    with open('{}.csv'.format(flag), 'w') as csv_file:
         writer = csv.writer(csv_file)
         writer.writerows(csv_data)
     print('Done.')
     print('Found {} results.'.format(len(csv_data) - 1))
+
+# Main entry point for script
+def main():
+    # Get all jobs in database
+    get_jobs_csv('')
+
+if __name__ == '__main__':
+    sys.exit(main())
