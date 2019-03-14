@@ -2,6 +2,8 @@
 # Program web-scrapes https://jobs.sap.com for given a search string.
 
 import os, sys, requests, webbrowser, bs4, csv, re
+from datetime import datetime
+from jobs_to_db import create_table, insert_row
 
 _url = 'https://jobs.sap.com/search/?q='
 
@@ -62,7 +64,7 @@ def job_results(job_links):
         for feature in feature_classes.values():
             feature_tag = soup.select('span[itemprop = "{}"]'.format(feature))[0]
             # Strip spaces, tabs, and newlines
-            feature_value = feature_tag.text.strip('\t\n\r ')
+            feature_value = feature_tag.text.strip('•\t\n\r ')
             job_data.append(feature_value)
         # Extract 'job_desc' from the job description block
         job_desc_tags = soup.select('.jobdescription > p > span > span > strong')
@@ -93,16 +95,16 @@ def job_results(job_links):
                 # Fetch first sibling
                 if first_sib:
                     job_req = re.sub(r'\n+', '\n', job_req + \
-                        first_sib.text).strip('\t\n\r ') + '\n'
+                        first_sib.text).strip('•\t\n\r ') + '\n'
                 # Fetch second sibling if longer than 8 words (not a sub-heading)
                 if second_sib and len(second_sib.text.split()) > 8 and \
                     first_sib.name != 'ul':
                     job_req = re.sub(r'\n+', '\n', job_req + \
-                        second_sib.text).strip('\t\n\r ') + '\n'
+                        second_sib.text).strip('•\t\n\r ') + '\n'
             elif hit2:
                     job_req = re.sub(r'\n+', '\n', job_req + \
-                        tag.text).strip('\t\n\r ') + '\n'
-        job_data.append(re.sub(r'\xa0', ' ', job_req).strip('\t\n\r '))
+                        tag.text).strip('•\t\n\r ') + '\n'
+        job_data.append(re.sub(r'\xa0', ' ', job_req).strip('•\t\n\r '))
         # Append finished job to list
         jobs.append(job_data)
     return jobs
@@ -116,7 +118,7 @@ def get_jobs(string):
     return jobs
 
 # Wrapper function to get all jobs matching a search string as a csv file
-def get_jobs_csv(string):
+def get_jobs_to_csv(string):
     # Check for forbidden filename characters.
     forbidden = ['.', ':', '/', '\\']
     if string == '' or any(char in string for char in forbidden):
@@ -135,10 +137,23 @@ def get_jobs_csv(string):
     print('Done.')
     print('Found {} results.'.format(len(csv_data) - 1))
 
+# Wrapper function to get all jobs matching a search string into a MySQL DB
+def get_jobs_to_db(string):
+    print('Fetching results...') # display text while downloading
+    jobs = job_results(get_joblinks(string))
+    string = string.replace(' ', '_') + '@' \
+        + datetime.now().strftime('%Y-%m-%d@%H:%M:%S')
+    create_table(string)
+    for row in jobs[1:]:
+        insert_row(string, row)
+    print('Done.')
+    print('Added {} records to table {} in MySQL database.'.format(len(jobs) - 1, \
+        string))
+
 # Main entry point for script
 def main():
     # Get all jobs in database
-    get_jobs_csv('')
+    get_jobs__to_csv('')
 
-if __name__ == '__main__':
-    sys.exit(main())
+#if __name__ == '__main__':
+#    sys.exit(main())
