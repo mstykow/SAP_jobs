@@ -1,7 +1,7 @@
 #! python3
 # Program web-scrapes https://jobs.sap.com for given a search string.
 
-import os, sys, requests, webbrowser, bs4, csv, re
+import os, sys, requests, bs4, csv, re
 from datetime import datetime
 from jobs_to_db import create_table, insert_row
 

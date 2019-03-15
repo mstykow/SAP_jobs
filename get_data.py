@@ -2,9 +2,12 @@
 # Function to get SAP job data from various sources
 
 from os import path
+from datetime import datetime
 import pandas as pd
 
-def get_data(job, source, date = None):
+today = datetime.today().strftime('%Y-%m-%d')
+
+def get_data(job, source, date = today):
     
     # Get data from https://jobs.sap.com/ using web scraper
     if source == 'scrape':
@@ -25,9 +28,6 @@ def get_data(job, source, date = None):
 
     # Get data from MySQL database
     elif source == 'mysql':
-        if date == None:
-            raise Exception("Date mandatory for SQL query.")
-        from datetime import datetime
         import mysql.connector as sqldb
         # Connection to DB
         job_db = sqldb.connect(
@@ -42,7 +42,6 @@ def get_data(job, source, date = None):
         tables = [table_name for (table_name,) in cursor.fetchall()]
         job_date = job.strip().replace(' ', '_') + '@' + date
         # Fetch new data if not yet in database and more than one day old
-        today = datetime.today().strftime('%Y-%m-%d')
         if date == today and job_date not in tables:
             from get_jobs import get_jobs_to_db
             get_jobs_to_db(job)
