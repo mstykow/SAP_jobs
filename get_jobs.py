@@ -154,5 +154,5 @@ def main():
     # Get all jobs in database
     get_jobs__to_csv('')
 
-#if __name__ == '__main__':
-#    sys.exit(main())
+if __name__ == '__main__':
+    sys.exit(main())
