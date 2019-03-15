@@ -141,8 +141,7 @@ def get_jobs_to_csv(string):
 def get_jobs_to_db(string):
     print('Fetching results...') # display text while downloading
     jobs = job_results(get_joblinks(string))
-    string = string.replace(' ', '_') + '@' \
-        + datetime.now().strftime('%Y-%m-%d@%H:%M:%S')
+    string = string.replace(' ', '_') + '@' + datetime.now().strftime('%Y-%m-%d')
     create_table(string)
     for row in jobs[1:]:
         insert_row(string, row)

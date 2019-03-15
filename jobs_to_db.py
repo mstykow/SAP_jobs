@@ -1,4 +1,5 @@
 #! python3
+# Functions to interact with MySQL database
 
 import mysql.connector as sqldb
 from datetime import datetime

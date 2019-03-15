@@ -1,4 +1,5 @@
 #! python3
+# Flask webservice app to fetch queries via API
 
 import sys
 from flask import Flask, jsonify, request
